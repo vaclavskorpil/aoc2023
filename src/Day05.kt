@@ -1,5 +1,4 @@
 import java.io.File
-import kotlin.math.abs
 
 fun main() {
 
@@ -7,19 +6,14 @@ fun main() {
     println(result)
 }
 
-
-
-
-
 private fun part1(): Long {
     val input = File("src/Day05.txt").readLines()
 
     val seeds = input.take(1).first().substringAfter(':').trim().split(" ")
-        .asSequence()
         .filter { it.isNotEmpty() }
         .map { it.trim().toLong() }
         .chunked(2)
-        .flatMap {
+        .map {
             val (start, size) = it
             println("Creating chunk")
             (start..(start + size))
@@ -52,7 +46,7 @@ private fun part1(): Long {
     println("-------")
     val result = seeds.map {
         "transforming $it"
-        maps.transformAll(it)
+        maps.transformAllGetMin(it)
     }.min()
 
     return result
@@ -74,24 +68,49 @@ private fun createMap(input: List<String>, startIndex: Int, endIndex: Int): Map<
         }.toMap()
 }
 
-private fun List<Map<LongRange, LongRange>>.transformAll(startNum: Long): Long {
+private fun List<Map<LongRange, LongRange>>.transformAllGetMin(startRange: LongRange): Long {
 
-    return this.foldIndexed(startNum) { index, acc, range ->
+    return this.foldIndexed(listOf(startRange)) { index, acc, stageRagnes ->
 //        println("seed $acc, step: $index")
 
-        val mapper = range.toList()
-            .firstOrNull { acc in it.first }
+        val newRanges = acc.flatMap { seedRange ->
+            val intersectingRanges = stageRagnes.toList().filter { it.first isIntersecting seedRange }
 
-        val newNum = if (mapper == null) {
-//            kotlin.io.println("Mapper not found")
-            acc
-        } else {
-//            println("will map using $mapper")
-
-            mapper.second.first + abs(acc - mapper.first.first)
-
+            intersectingRanges.map { (sourceRange, targedRange) ->
+                transfromToTargetRangeLenght(sourceRange, seedRange, targedRange)
+            }
         }
-//        println("New seed $newNum")
-        newNum
-    }
+
+        newRanges
+    }.minOf { it.first }
 }
+
+private infix fun LongRange.isIntersecting(range: LongRange): Boolean {
+    val start = listOf(first, range.first).max()
+    val end = listOf(last, range.last).min()
+
+    return end > start
+}
+
+private infix fun LongRange.intersectingRange(range: LongRange): LongRange {
+    val start = listOf(first, range.first).max()
+    val end = listOf(last, range.last).min()
+
+    return start..end
+}
+
+private fun transfromToTargetRangeLenght(
+    sourcRange: LongRange,
+    seedRange: LongRange,
+    targetRange: LongRange
+): LongRange {
+    val intersection = sourcRange intersectingRange seedRange
+
+    val startOffset = sourcRange.first - intersection.first
+    val size = intersection.last - intersection.first
+
+    val newRangeStart = targetRange.first + startOffset
+
+    return newRangeStart..(newRangeStart + size)
+}
+

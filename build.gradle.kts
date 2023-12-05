@@ -8,12 +8,6 @@ sourceSets {
     }
 }
 
-dependencies {
-    // https://mvnrepository.com/artifact/org.jetbrains.kotlinx/kotlinx-coroutines-core-jvm
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
-    runtimeOnly("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.7.3")
-
-}
 
 tasks {
     wrapper {
