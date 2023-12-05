@@ -18,7 +18,7 @@ private fun part2(): Int {
         val myNubers = myNubersPart.split(" ").filter { it.isNotEmpty() }.map { it.trim().toInt() }
         val winning = winningPart.split(" ").filter { it.isNotEmpty() }.map { it.trim().toInt() }
 
-        val iWon = myNubers.size - (myNubers - winning.toSet()).size
+        val iWon = (myNubers intersect winning.toSet()).size
         if (iWon != 0) {
             val gameIndsx = index + 1
             val allRoudCardsWon = resultMap[gameIndsx]!!
@@ -45,7 +45,7 @@ private fun part1(): Int {
         val myNubers = myNubersPart.split(" ").filter { it.isNotEmpty() }.map { it.trim().toInt() }
         val winning = winningPart.split(" ").filter { it.isNotEmpty() }.map { it.trim().toInt() }
 
-        val iWon = myNubers.size - (myNubers - winning.toSet()).size
+        val iWon = (myNubers intersect winning.toSet()).size
         if (iWon == 0) {
             0.0
         } else {
