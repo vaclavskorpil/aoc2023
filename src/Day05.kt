@@ -15,11 +15,8 @@ private fun part1(): Long {
         .chunked(2)
         .map {
             val (start, size) = it
-            println("Creating chunk")
             (start..(start + size))
         }
-
-    println("got seeds ")
 
     val seedToSoilPos = input.indexOfFirst { it.contains("seed-to-soil map:") }
     val soilToFertPos = input.indexOfFirst { it.contains("soil-to-fertilizer map:") }
@@ -30,22 +27,16 @@ private fun part1(): Long {
     val humToLocation = input.indexOfFirst { it.contains("humidity-to-location map:") }
 
     val maps = listOf(
-        createMap(input, seedToSoilPos, soilToFertPos),
-        createMap(input, soilToFertPos, fertToWaterPos),
-        createMap(input, fertToWaterPos, waterToLightPos),
-        createMap(input, waterToLightPos, lightToTempPos),
-        createMap(input, lightToTempPos, tempToHum),
-        createMap(input, tempToHum, humToLocation),
-        createMap(input, humToLocation, input.size),
+        createMappingBetweenStages(input, seedToSoilPos, soilToFertPos),
+        createMappingBetweenStages(input, soilToFertPos, fertToWaterPos),
+        createMappingBetweenStages(input, fertToWaterPos, waterToLightPos),
+        createMappingBetweenStages(input, waterToLightPos, lightToTempPos),
+        createMappingBetweenStages(input, lightToTempPos, tempToHum),
+        createMappingBetweenStages(input, tempToHum, humToLocation),
+        createMappingBetweenStages(input, humToLocation, input.size),
     )
 
-    maps.forEachIndexed { index, map ->
-        println("Map $index\n $map")
-    }
-
-    println("-------")
     val result = seeds.map {
-        "transforming $it"
         maps.transformAllGetMin(it)
     }.min()
 
@@ -53,7 +44,7 @@ private fun part1(): Long {
 
 }
 
-private fun createMap(input: List<String>, startIndex: Int, endIndex: Int): Map<LongRange, LongRange> {
+private fun createMappingBetweenStages(input: List<String>, startIndex: Int, endIndex: Int): Map<LongRange, LongRange> {
     val block = input.subList(startIndex + 1, endIndex)
 
     return block
@@ -69,10 +60,7 @@ private fun createMap(input: List<String>, startIndex: Int, endIndex: Int): Map<
 }
 
 private fun List<Map<LongRange, LongRange>>.transformAllGetMin(startRange: LongRange): Long {
-
-    return this.foldIndexed(listOf(startRange)) { index, acc, stageRagnes ->
-//        println("seed $acc, step: $index")
-
+    return this.fold(listOf(startRange)) { acc, stageRagnes ->
         val newRanges = acc.flatMap { seedRange ->
             val intersectingRanges = stageRagnes.toList().filter { it.first isIntersecting seedRange }
 
@@ -80,9 +68,36 @@ private fun List<Map<LongRange, LongRange>>.transformAllGetMin(startRange: LongR
                 transfromToTargetRangeLenght(sourceRange, seedRange, targedRange)
             }
         }
-
         newRanges
     }.minOf { it.first }
+}
+
+private fun transfromToTargetRangeLenght(
+    sourcRange: LongRange,
+    seedRange: LongRange,
+    targetRange: LongRange
+): LongRange {
+    return (sourcRange intersectingRange seedRange)?.let { intersection ->
+
+        val startOffset = intersection.first - sourcRange.first
+        val size = intersection.last - intersection.first
+
+        val newRangeStart = targetRange.first + startOffset
+
+        println("Transforming offset $startOffset size $size")
+
+        newRangeStart..(newRangeStart + size)
+    } ?: sourcRange
+}
+
+private infix fun LongRange.intersectingRange(range: LongRange): LongRange? {
+    return if (isIntersecting(range)) {
+
+        val start = listOf(first, range.first).max()
+        val end = listOf(last, range.last).min()
+
+        return start..end
+    } else null
 }
 
 private infix fun LongRange.isIntersecting(range: LongRange): Boolean {
@@ -91,26 +106,3 @@ private infix fun LongRange.isIntersecting(range: LongRange): Boolean {
 
     return end > start
 }
-
-private infix fun LongRange.intersectingRange(range: LongRange): LongRange {
-    val start = listOf(first, range.first).max()
-    val end = listOf(last, range.last).min()
-
-    return start..end
-}
-
-private fun transfromToTargetRangeLenght(
-    sourcRange: LongRange,
-    seedRange: LongRange,
-    targetRange: LongRange
-): LongRange {
-    val intersection = sourcRange intersectingRange seedRange
-
-    val startOffset = sourcRange.first - intersection.first
-    val size = intersection.last - intersection.first
-
-    val newRangeStart = targetRange.first + startOffset
-
-    return newRangeStart..(newRangeStart + size)
-}
-
