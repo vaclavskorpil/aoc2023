@@ -62,6 +62,7 @@ private fun createMappingBetweenStages(input: List<String>, startIndex: Int, end
 private fun List<Map<LongRange, LongRange>>.transformAllGetMin(startRange: LongRange): Long {
     return this.fold(listOf(startRange)) { acc, stageRagnes ->
         val newRanges = acc.flatMap { seedRange ->
+
             val intersectingRanges = stageRagnes.toList().filter { it.first isIntersecting seedRange }
 
             intersectingRanges.map { (sourceRange, targedRange) ->
@@ -83,8 +84,6 @@ private fun transfromToTargetRangeLenght(
         val size = intersection.last - intersection.first
 
         val newRangeStart = targetRange.first + startOffset
-
-        println("Transforming offset $startOffset size $size")
 
         newRangeStart..(newRangeStart + size)
     } ?: sourcRange
